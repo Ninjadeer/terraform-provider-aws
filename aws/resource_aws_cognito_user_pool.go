@@ -161,6 +161,19 @@ func resourceAwsCognitoUserPool() *schema.Resource {
 								cognitoidentityprovider.EmailSendingAccountTypeDeveloper,
 							}, false),
 						},
+						"from": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringInSlice([]string{""}, false),
+								validation.StringMatch(regexp.MustCompile(`[\p{L}\p{M}\p{S}\p{N}\p{P}]+@[\p{L}\p{M}\p{S}\p{N}\p{P}]+`),
+									`must satisfy regular expression pattern: [\p{L}\p{M}\p{S}\p{N}\p{P}]+@[\p{L}\p{M}\p{S}\p{N}\p{P}]+`),
+							),
+						},
+						"configuration_set": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -558,6 +571,14 @@ func resourceAwsCognitoUserPoolCreate(d *schema.ResourceData, meta interface{}) 
 				emailConfigurationType.EmailSendingAccount = aws.String(v.(string))
 			}
 
+			if v, ok := config["from"]; ok && v.(string) != "" {
+				emailConfigurationType.From = aws.String(v.(string))
+			}
+
+			if v, ok := config["configuration_set"]; ok && v.(string) != "" {
+				emailConfigurationType.ConfigurationSet = aws.String(v.(string))
+			}
+
 			params.EmailConfiguration = emailConfigurationType
 		}
 	}
@@ -849,6 +870,14 @@ func resourceAwsCognitoUserPoolUpdate(d *schema.ResourceData, meta interface{}) 
 
 			if v, ok := config["email_sending_account"]; ok && v.(string) != "" {
 				emailConfigurationType.EmailSendingAccount = aws.String(v.(string))
+			}
+
+			if v, ok := config["from"]; ok && v.(string) != "" {
+				emailConfigurationType.From = aws.String(v.(string))
+			}
+
+			if v, ok := config["configuration_set"]; ok && v.(string) != "" {
+				emailConfigurationType.ConfigurationSet = aws.String(v.(string))
 			}
 
 			params.EmailConfiguration = emailConfigurationType
